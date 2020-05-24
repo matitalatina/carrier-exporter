@@ -2,32 +2,22 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 
 	"mattianatali.it/carrier-exporter/internal/config"
-	"mattianatali.it/carrier-exporter/internal/wind"
+	"mattianatali.it/carrier-exporter/internal/metrics"
 )
 
 func main() {
-	container := wind.Container{}
-	windService := container.GetService()
-
 	config, err := config.ParseFile("../../config.yml")
 
 	if err != nil {
-		fmt.Println(err)
+		log.Panic(err)
 	}
 
-	insight, err := windService.GetInsights(wind.Credentials{
-		Username: config.Secrets.Wind.Username,
-		Password: config.Secrets.Wind.Password,
-	},
-		config.Secrets.Wind.LineID,
-		config.Secrets.Wind.ContractID,
-	)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(insight)
+	port := config.App.Port
+	http.HandleFunc("/metrics", metrics.HandleMetrics(config))
+	log.Printf("Listening on port %d", port)
+	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }

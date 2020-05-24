@@ -8,6 +8,9 @@ import (
 )
 
 type Config struct {
+	App struct {
+		Port int `yaml:"port"`
+	}
 	Secrets struct {
 		Wind struct {
 			Username   string `yaml:"username"`
