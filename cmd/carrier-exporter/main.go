@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,7 +11,9 @@ import (
 )
 
 func main() {
-	config, err := config.ParseFile("../../config.yml")
+	configPath := flag.String("config", "config.yml", "Config location")
+	flag.Parse()
+	config, err := config.ParseFile(*configPath)
 
 	if err != nil {
 		log.Panic(err)
