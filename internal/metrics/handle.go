@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -34,10 +34,9 @@ func HandleMetrics(config config.Config) func(w http.ResponseWriter, r *http.Req
 		)
 
 		if err != nil {
-			fmt.Println(err)
+			log.Printf("Error getting wind insights: %+v", err)
 		}
 
-		fmt.Println(insight)
 		available.WithLabelValues("wind").Set(insight.National.Data.Available)
 
 		promhttp.Handler().ServeHTTP(w, r)
