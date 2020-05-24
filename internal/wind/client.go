@@ -49,11 +49,12 @@ func (w *Client) Login(credentials Credentials) ([]*http.Cookie, error) {
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := w.Client.Do(req)
-	defer resp.Body.Close()
 
 	if err != nil {
 		return nil, err
 	}
+
+	defer resp.Body.Close()
 
 	cookies := resp.Cookies()
 
