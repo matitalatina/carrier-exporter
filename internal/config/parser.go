@@ -18,6 +18,10 @@ type Config struct {
 			LineID     string `yaml:"lineId"`
 			ContractID string `yaml:"contractId"`
 		} `yaml:"wind"`
+		Tim struct {
+			Username string `yaml:"username"`
+			Password string `yaml:"password"`
+		} `yaml:"tim"`
 	} `yaml:"secrets"`
 }
 
