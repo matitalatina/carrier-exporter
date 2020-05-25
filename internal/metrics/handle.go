@@ -19,6 +19,8 @@ var (
 	}, []string{
 		"carrier",
 	})
+	windContainer = wind.Container{}
+	timContainer  = tim.Container{}
 )
 
 func HandleMetrics(config config.Config) func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +44,8 @@ func HandleMetrics(config config.Config) func(w http.ResponseWriter, r *http.Req
 }
 
 func registerTim(config config.Config) error {
-	availableDataBytes, err := tim.GetAvailableDataBytes(tim.Credentials{
+	service := timContainer.GetService()
+	availableDataBytes, err := service.GetAvailableDataBytes(tim.Credentials{
 		Username: config.Secrets.Tim.Username,
 		Password: config.Secrets.Tim.Password,
 	})
@@ -51,13 +54,12 @@ func registerTim(config config.Config) error {
 		return err
 	}
 
-	available.WithLabelValues("tim").Set(float64(availableDataBytes))
+	available.WithLabelValues("tim").Set(availableDataBytes)
 	return nil
 }
 
 func registerWind(config config.Config) error {
-	container := wind.Container{}
-	windService := container.GetService()
+	windService := windContainer.GetService()
 
 	insight, err := windService.GetInsights(wind.Credentials{
 		Username: config.Secrets.Wind.Username,
