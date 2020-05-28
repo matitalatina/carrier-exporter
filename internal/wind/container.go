@@ -1,6 +1,9 @@
 package wind
 
-import "net/http"
+import (
+	"net/http"
+	"time"
+)
 
 type Container struct {
 	Client     *Client
@@ -18,7 +21,9 @@ func (c *Container) getHttpClient() *http.Client {
 func (c *Container) GetClient() *Client {
 	if c.Client == nil {
 		c.Client = &Client{
-			Client: c.getHttpClient(),
+			Client: &http.Client{
+				Timeout: time.Second * 10,
+			},
 		}
 	}
 	return c.Client
