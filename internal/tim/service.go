@@ -3,6 +3,7 @@ package tim
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/chromedp/chromedp"
 )
@@ -17,7 +18,7 @@ func showBrowser(a *chromedp.ExecAllocator) {
 }
 
 type Service struct {
-	ctx *context.Context
+	ctx context.Context
 }
 
 var availableDataLabel = "#to-hero-dashboard__counters_mobile .to-hero-dashboard__counter:nth-of-type(2) .tm-traffic-counter__data .tm-traffic-counter__data-title"
@@ -35,7 +36,12 @@ func (s *Service) init(credentials Credentials) error {
 
 	allocCtx, _ := chromedp.NewExecAllocator(context.Background(), opts...)
 	ctx, _ := chromedp.NewContext(allocCtx)
-	s.ctx = &ctx
+
+	// Start the browser
+	if err := chromedp.Run(ctx); err != nil {
+		return err
+	}
+	s.ctx = ctx
 
 	return s.login(credentials)
 }
@@ -46,7 +52,7 @@ func (s *Service) login(credentials Credentials) error {
 	loginButton := "#button_caring_login"
 	loginURL := "https://mytim.tim.it/login-authorize.html"
 
-	if err := chromedp.Run(*s.ctx,
+	if err := chromedp.Run(s.ctx,
 		chromedp.Navigate(loginURL),
 		chromedp.WaitVisible(emailLoginInput),
 		chromedp.SendKeys(emailLoginInput, credentials.Username),
@@ -70,7 +76,10 @@ func (s *Service) GetAvailableDataBytes(credentials Credentials) (float64, error
 	var availableGBStr string
 	dashboardURL := "https://mytim.tim.it/it.html"
 
-	if err := chromedp.Run(*s.ctx,
+	ctx, cancel := context.WithTimeout(s.ctx, 40*time.Second)
+	defer cancel()
+
+	if err := chromedp.Run(ctx,
 		chromedp.Navigate(dashboardURL),
 		chromedp.WaitVisible(availableDataLabel),
 		chromedp.Text(availableDataLabel, &availableGBStr),
