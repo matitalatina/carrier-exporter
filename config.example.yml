@@ -1,0 +1,19 @@
+app:
+  port: 2112
+carriers:
+  wind:
+    username: username
+    password: password
+    lineId: lineId
+    contractId: contractId
+  tim:
+    username: username
+    password: password
+  vodafone:
+    username: username
+    password: password
+    sims:
+      - phone: phone
+        counters:
+          - counters
+          - counters2 

@@ -21,40 +21,13 @@ type Client struct {
 	Client HttpClient
 }
 
+type ApiAuth struct {
+	BwbSessionId string
+	Token        string
+}
 type GuestCredentials struct {
-	BwbSessionid string
+	BwbSessionId string
 	Response     GuestResponse
-}
-
-type GuestResponse struct {
-	Code        int    `json:"code"`
-	Description string `json:"description"`
-	Result      struct {
-		Token                  string `json:"token"`
-		WidgetAutoRefreshDelay string `json:"widgetAutoRefreshDelay"`
-		WidgetNextRefreshDelay string `json:"widgetNextRefreshDelay"`
-	} `json:"result"`
-}
-
-type LoginResponse struct {
-	Code        int    `json:"code"`
-	Description string `json:"description"`
-	Result      struct {
-		Customer struct {
-			Email      string `json:"email"`
-			Firstname  string `json:"firstname"`
-			FiscalCode string `json:"fiscalCode"`
-			Lastname   string `json:"lastname"`
-			TypeID     string `json:"typeId"`
-			Username   string `json:"username"`
-		} `json:"customer"`
-		Items []struct {
-			Type  string `json:"type"`
-			Value string `json:"value"`
-		} `json:"items"`
-		PartyIdentifier string `json:"partyIdentifier"`
-		PsgToken        string `json:"psgToken"`
-	} `json:"result"`
 }
 
 func (c *Client) GetToken() (*GuestCredentials, error) {
@@ -91,12 +64,12 @@ func (c *Client) GetToken() (*GuestCredentials, error) {
 	}
 
 	return &GuestCredentials{
-		BwbSessionid: resp.Header.Get("X-Bwb-SessionId"),
+		BwbSessionId: resp.Header.Get("X-Bwb-SessionId"),
 		Response:     guestResponse,
 	}, nil
 }
 
-func (c *Client) Login(jwtToken string, bwbSessionId string, credentials Credentials) (*LoginResponse, error) {
+func (c *Client) Login(auth ApiAuth, credentials Credentials) (*LoginResponse, error) {
 	bodyReq := map[string]string{
 		"username": credentials.Username,
 		"password": credentials.Password,
@@ -118,8 +91,8 @@ func (c *Client) Login(jwtToken string, bwbSessionId string, credentials Credent
 	}
 
 	req.Header = getDefaultHeaders()
-	req.Header.Set("X-Bwb-SessionId", bwbSessionId)
-	req.Header.Set("X-Auth-Token", jwtToken)
+	req.Header.Set("X-Bwb-SessionId", auth.BwbSessionId)
+	req.Header.Set("X-Auth-Token", auth.Token)
 
 	resp, err := c.Client.Do(req)
 	defer resp.Body.Close()
@@ -134,8 +107,6 @@ func (c *Client) Login(jwtToken string, bwbSessionId string, credentials Credent
 		return nil, err
 	}
 
-	fmt.Println(string(body))
-
 	var loginResponse LoginResponse
 	err = json.Unmarshal(body, &loginResponse)
 
@@ -144,6 +115,44 @@ func (c *Client) Login(jwtToken string, bwbSessionId string, credentials Credent
 	}
 
 	return &loginResponse, nil
+}
+
+func (c *Client) GetCounters(auth ApiAuth, phone string) (*CountersResponse, error) {
+	req, err := http.NewRequest(
+		"GET",
+		fmt.Sprintf("https://my190.vodafone.it/api/v3/sim/%s/counters", phone),
+		nil,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header = getDefaultHeaders()
+	req.Header.Set("X-Bwb-SessionId", auth.BwbSessionId)
+	req.Header.Set("X-Auth-Token", auth.Token)
+
+	resp, err := c.Client.Do(req)
+	defer resp.Body.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var counterResponse CountersResponse
+	err = json.Unmarshal(body, &counterResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &counterResponse, nil
 }
 
 func getDefaultHeaders() http.Header {

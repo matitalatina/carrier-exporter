@@ -10,8 +10,8 @@ import (
 type Config struct {
 	App struct {
 		Port int `yaml:"port"`
-	}
-	Secrets struct {
+	} `yaml:"app"`
+	Carriers struct {
 		Wind struct {
 			Username   string `yaml:"username"`
 			Password   string `yaml:"password"`
@@ -22,7 +22,15 @@ type Config struct {
 			Username string `yaml:"username"`
 			Password string `yaml:"password"`
 		} `yaml:"tim"`
-	} `yaml:"secrets"`
+		Vodafone struct {
+			Username string `yaml:"username"`
+			Password string `yaml:"password"`
+			Sims     []struct {
+				Phone    string   `yaml:"phone"`
+				Counters []string `yaml:"counters"`
+			} `yaml:"sims"`
+		} `yaml:"vodafone"`
+	} `yaml:"carriers"`
 }
 
 func ParseFile(path string) (Config, error) {

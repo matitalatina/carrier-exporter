@@ -9,6 +9,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"mattianatali.it/carrier-exporter/internal/config"
 	"mattianatali.it/carrier-exporter/internal/tim"
+	"mattianatali.it/carrier-exporter/internal/vodafone"
 	"mattianatali.it/carrier-exporter/internal/wind"
 )
 
@@ -33,8 +34,11 @@ func HandleMetrics(config config.Config) func(w http.ResponseWriter, r *http.Req
 		go func(c chan<- error) {
 			status <- registerTim(config)
 		}(status)
+		go func(c chan<- error) {
+			status <- registerVodafone(config)
+		}(status)
 
-		for i := 0; i < 2; i++ {
+		for i := 0; i < 3; i++ {
 			if err := <-status; err != nil {
 				fmt.Printf("Error encountered: %+v", err)
 			}
@@ -46,8 +50,8 @@ func HandleMetrics(config config.Config) func(w http.ResponseWriter, r *http.Req
 func registerTim(config config.Config) error {
 	service := timContainer.GetService()
 	availableDataBytes, err := service.GetAvailableDataBytes(tim.Credentials{
-		Username: config.Secrets.Tim.Username,
-		Password: config.Secrets.Tim.Password,
+		Username: config.Carriers.Tim.Username,
+		Password: config.Carriers.Tim.Password,
 	})
 
 	if err != nil {
@@ -62,11 +66,11 @@ func registerWind(config config.Config) error {
 	windService := windContainer.GetService()
 
 	insight, err := windService.GetInsights(wind.Credentials{
-		Username: config.Secrets.Wind.Username,
-		Password: config.Secrets.Wind.Password,
+		Username: config.Carriers.Wind.Username,
+		Password: config.Carriers.Wind.Password,
 	},
-		config.Secrets.Wind.LineID,
-		config.Secrets.Wind.ContractID,
+		config.Carriers.Wind.LineID,
+		config.Carriers.Wind.ContractID,
 	)
 
 	if err != nil {
@@ -76,4 +80,44 @@ func registerWind(config config.Config) error {
 	available.WithLabelValues("wind").Set(insight.National.Data.Available)
 
 	return nil
+}
+
+func registerVodafone(config config.Config) error {
+	container := vodafone.Container{}
+	service := container.GetService()
+	vodafoneConf := config.Carriers.Vodafone
+	sim := vodafoneConf.Sims[0]
+	resp, err := service.GetCounters(vodafone.Credentials{
+		Username: vodafoneConf.Username,
+		Password: vodafoneConf.Password,
+	}, sim.Phone)
+
+	if err != nil {
+		return err
+	}
+
+	availableGb := float64(0)
+
+	for _, c := range resp.Result.Counters {
+		if contains(sim.Counters, c.ID) {
+			for _, v := range c.Threshold.Values {
+				if v.Unit == "GB" {
+					availableGb += v.ResidualValue
+				}
+			}
+		}
+	}
+
+	available.WithLabelValues("vodafone").Set(availableGb * 1024 * 1024 * 1024)
+
+	return nil
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
