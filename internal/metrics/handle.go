@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"mattianatali.it/carrier-exporter/internal/config"
-	"mattianatali.it/carrier-exporter/internal/tim"
+	"mattianatali.it/carrier-exporter/internal/timbrowser"
 	"mattianatali.it/carrier-exporter/internal/vodafone"
 	"mattianatali.it/carrier-exporter/internal/wind"
 )
@@ -21,7 +21,7 @@ var (
 		"carrier",
 	})
 	windContainer = wind.Container{}
-	timContainer  = tim.Container{}
+	timContainer  = timbrowser.Container{}
 )
 
 func HandleMetrics(config config.Config) func(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +49,7 @@ func HandleMetrics(config config.Config) func(w http.ResponseWriter, r *http.Req
 
 func registerTim(config config.Config) error {
 	service := timContainer.GetService()
-	availableDataBytes, err := service.GetAvailableDataBytes(tim.Credentials{
+	availableDataBytes, err := service.GetAvailableDataBytes(timbrowser.Credentials{
 		Username: config.Carriers.Tim.Username,
 		Password: config.Carriers.Tim.Password,
 	})

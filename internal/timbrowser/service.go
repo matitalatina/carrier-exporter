@@ -1,4 +1,4 @@
-package tim
+package timbrowser
 
 import (
 	"context"

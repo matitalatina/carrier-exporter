@@ -1,4 +1,4 @@
-package tim
+package timbrowser
 
 type Container struct {
 	Service *Service
