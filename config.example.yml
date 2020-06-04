@@ -9,6 +9,7 @@ carriers:
   tim:
     username: username
     password: password
+    phone: phone
   vodafone:
     username: username
     password: password

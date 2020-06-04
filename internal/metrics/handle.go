@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"mattianatali.it/carrier-exporter/internal/config"
+	"mattianatali.it/carrier-exporter/internal/tim"
 	"mattianatali.it/carrier-exporter/internal/timbrowser"
 	"mattianatali.it/carrier-exporter/internal/vodafone"
 	"mattianatali.it/carrier-exporter/internal/wind"
@@ -20,8 +21,9 @@ var (
 	}, []string{
 		"carrier",
 	})
-	windContainer = wind.Container{}
-	timContainer  = timbrowser.Container{}
+	windContainer       = wind.Container{}
+	timBrowserContainer = timbrowser.Container{}
+	timContainer        = tim.Container{}
 )
 
 func HandleMetrics(config config.Config) func(w http.ResponseWriter, r *http.Request) {
@@ -47,8 +49,8 @@ func HandleMetrics(config config.Config) func(w http.ResponseWriter, r *http.Req
 	}
 }
 
-func registerTim(config config.Config) error {
-	service := timContainer.GetService()
+func registerTimBrowser(config config.Config) error {
+	service := timBrowserContainer.GetService()
 	availableDataBytes, err := service.GetAvailableDataBytes(timbrowser.Credentials{
 		Username: config.Carriers.Tim.Username,
 		Password: config.Carriers.Tim.Password,
@@ -59,6 +61,21 @@ func registerTim(config config.Config) error {
 	}
 
 	available.WithLabelValues("tim").Set(availableDataBytes)
+	return nil
+}
+
+func registerTim(config config.Config) error {
+	service := timContainer.GetService()
+	availableDataBytes, err := service.GetAvailableBytes(tim.Credentials{
+		Username: config.Carriers.Tim.Username,
+		Password: config.Carriers.Tim.Password,
+	}, config.Carriers.Tim.Phone)
+
+	if err != nil {
+		return err
+	}
+
+	available.WithLabelValues("tim").Set(*availableDataBytes)
 	return nil
 }
 

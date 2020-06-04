@@ -7,6 +7,7 @@ import (
 
 type Container struct {
 	Client     *Client
+	Service    *Service
 	httpClient *http.Client
 }
 
@@ -22,4 +23,10 @@ func (c *Container) GetClient() *Client {
 		}
 	}
 	return c.Client
+}
+
+func (c *Container) GetService() *Service {
+	return &Service{
+		Client: *c.GetClient(),
+	}
 }

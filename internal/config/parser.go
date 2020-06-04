@@ -21,6 +21,7 @@ type Config struct {
 		Tim struct {
 			Username string `yaml:"username"`
 			Password string `yaml:"password"`
+			Phone    string `yaml:"phone"`
 		} `yaml:"tim"`
 		Vodafone struct {
 			Username string `yaml:"username"`
