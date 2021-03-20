@@ -40,7 +40,7 @@ func HandleMetrics(config config.Config) func(w http.ResponseWriter, r *http.Req
 			status <- registerVodafone(config)
 		}(status)
 
-		for i := 0; i < 3; i++ {
+		for i := 0; i < 2; i++ {
 			if err := <-status; err != nil {
 				fmt.Printf("Error encountered: %+v", err)
 			}

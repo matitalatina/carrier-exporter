@@ -21,6 +21,8 @@ Rename `config.example.yml` to `config.yml`. Change variables with yours.
 
 ### TIM
 
+⚠️ **TIM added reCAPTCHA during login flow**: it's not working anymore. I disabled it.
+
 - Username / Password: your credentials.
 - Phone: your phone (without +39, only numbers).
 
