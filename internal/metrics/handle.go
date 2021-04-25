@@ -33,9 +33,9 @@ func HandleMetrics(config config.Config) func(w http.ResponseWriter, r *http.Req
 		go func(c chan<- error) {
 			status <- registerWind(config)
 		}(status)
-		go func(c chan<- error) {
-			status <- registerTim(config)
-		}(status)
+		// go func(c chan<- error) {
+		// 	status <- registerTim(config)
+		// }(status)
 		go func(c chan<- error) {
 			status <- registerVodafone(config)
 		}(status)

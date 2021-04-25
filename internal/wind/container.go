@@ -1,6 +1,7 @@
 package wind
 
 import (
+	"crypto/tls"
 	"net/http"
 	"time"
 )
@@ -20,9 +21,14 @@ func (c *Container) getHttpClient() *http.Client {
 
 func (c *Container) GetClient() *Client {
 	if c.Client == nil {
+		// Today 2021-04-25T08:25:45.133Z, Wind Apis have expired certificate :D
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
 		c.Client = &Client{
 			Client: &http.Client{
-				Timeout: time.Second * 10,
+				Timeout:   time.Second * 10,
+				Transport: tr,
 			},
 		}
 	}
