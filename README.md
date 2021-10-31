@@ -54,5 +54,5 @@ I made this project for my own purposes, but the code should be clear and easy t
 
 - *How do you get these API calls?*:
   - TIM: Inspecting API calls made by the browser.
-  - Wind/3: Inspecting API calls made by the official app using [mitmproxy](https://mitmproxy.org/).
+  - Wind/3: Inspecting API calls made by the Android official app using [mitmproxy](https://mitmproxy.org/). You need to allow custom certificates [with this tool](https://github.com/levyitay/AddSecurityExceptionAndroid).
   - Vodafone: Disassembling official mobile app, bypassing [certificate pinning](https://owasp.org/www-community/controls/Certificate_and_Public_Key_Pinning), inspecting API calls using [mitmproxy](https://mitmproxy.org/).

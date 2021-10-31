@@ -1,41 +1,39 @@
 package wind
 
-import "net/http"
-
 type Service struct {
-	Client      Client
-	authCookies []*http.Cookie
+	Client    Client
+	authToken string
 }
 
 func (s *Service) GetInsights(credentials Credentials, lineId string, contractId string) (*InsightsSummary, error) {
-	authCookies, err := s.fetchAuthCookies(credentials)
+	authToken, err := s.fetchAuthToken(credentials)
 
 	if err != nil {
 		return nil, err
 	}
 
-	stats, err := s.Client.GetStats(authCookies, lineId, contractId)
+	stats, err := s.Client.GetStats(authToken, lineId, contractId)
 
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: it takes the first one. We can improve
-	return &stats.Lines[0].InsightsSummary, nil
+	return &stats.Data.Lines[0].InsightsSummary, nil
 }
 
-func (s *Service) fetchAuthCookies(credentials Credentials) ([]*http.Cookie, error) {
-	if s.authCookies != nil {
-		return s.authCookies, nil
+func (s *Service) fetchAuthToken(credentials Credentials) (string, error) {
+	if s.authToken != "" {
+		return s.authToken, nil
 	}
 
 	authCookies, err := s.Client.Login(credentials)
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	s.authCookies = authCookies
+	s.authToken = authCookies
 
 	return authCookies, nil
 }

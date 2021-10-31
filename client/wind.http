@@ -1,0 +1,40 @@
+# You should install REST client in VS Code and put credentials in .env in this folder
+# https://github.com/Huachao/vscode-restclient
+@username = {{$dotenv WIND_USERNAME}}
+@password = {{$dotenv WIND_PASSWORD}}
+@contractId = {{$dotenv WIND_CONTRACT_ID}}
+@lineId = {{$dotenv WIND_LINE_ID}}
+
+@token = {{login.response.headers.X-W3-Token}}
+
+# @name login
+POST https://apigw.windtre.it/api/v4/login/credentials HTTP/1.1
+X-Wind-Client: app-and
+X-Wind-Version: ANDROID_V8.11.1
+X-Brand: ONEBRAND
+X-W3-OS: 11
+X-W3-Device: Samsung SM-G970F
+X-Language: it
+X-API-Client-Id: 55527905-1fae-4f02-b7df-9c9a87749f69
+Content-Type: application/json; charset=UTF-8
+Host: apigw.windtre.it
+Connection: Keep-Alive
+
+{"username":"{{username}}","password":"{{password}}","rememberMe":true}
+
+
+
+###
+# @name stats
+GET https://apigw.windtre.it/api/ob/v2/contract/lineunfolded?contractId={{contractId}}&lineId={{lineId}}&paymentType=POST HTTP/1.1
+X-Wind-Client: app-and
+X-Wind-Version: ANDROID_V8.11.1
+X-Brand: ONEBRAND
+X-W3-OS: 11
+X-W3-Device: Samsung SM-G970F
+X-Language: it
+X-API-Client-Id: 55527905-1fae-4f02-b7df-9c9a87749f69
+Content-Type: application/json; charset=UTF-8
+Host: apigw.windtre.it
+Connection: Keep-Alive
+Authorization: Bearer {{token}}

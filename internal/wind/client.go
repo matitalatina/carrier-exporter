@@ -25,53 +25,56 @@ type Client struct {
 
 // Login makes login into Wind account
 // it returns cookies to make authenticated calls
-func (w *Client) Login(credentials Credentials) ([]*http.Cookie, error) {
+func (w *Client) Login(credentials Credentials) (string, error) {
 	body := map[string]string{
-		"username": credentials.Username,
-		"password": credentials.Password,
+		"username":   credentials.Username,
+		"password":   credentials.Password,
+		"rememberMe": "true",
 	}
 	jsonBody, err := json.Marshal(body)
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	req, err := http.NewRequest(
 		"POST",
-		"https://apigateway-selfcare.apps.windtre.it/api/v1/authentication/authenticate-app",
+		"https://apigw.windtre.it/api/v4/login/credentials",
 		bytes.NewBuffer(jsonBody),
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	req.Header = getDefaultHeaders()
+
+	resp, err := w.Client.Do(req)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	return resp.Header.Get("X-W3-Token"), nil
+}
+
+func (w *Client) GetStats(token string, lineId string, contractId string) (*Stats, error) {
+	url := fmt.Sprintf("https://apigw.windtre.it/api/ob/v2/contract/lineunfolded?contractId=%s&lineId=%s&paymentType=POST", contractId, lineId)
+
+	req, err := http.NewRequest(
+		"GET",
+		url,
+		nil,
 	)
 
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := w.Client.Do(req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	cookies := resp.Cookies()
-
-	return cookies, nil
-}
-
-func (w *Client) GetStats(authCookies []*http.Cookie, lineId string, contractId string) (*Stats, error) {
-	url := fmt.Sprintf("https://apigateway-selfcare.apps.windtre.it/api/v1/contract/lineunfolded?lineId=%s&contractId=%s", lineId, contractId)
-	req, err := http.NewRequest("GET", url, nil)
-
-	if err != nil {
-		return nil, err
-	}
-
-	for _, c := range authCookies {
-		req.AddCookie(c)
-	}
+	req.Header = getDefaultHeaders()
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	resp, err := w.Client.Do(req)
 	defer resp.Body.Close()
@@ -94,4 +97,18 @@ func (w *Client) GetStats(authCookies []*http.Cookie, lineId string, contractId 
 	}
 
 	return &stats, nil
+}
+
+func getDefaultHeaders() http.Header {
+	return http.Header{
+		"X-Wind-Client":   {"app-and"},
+		"X-Wind-Version":  {"ANDROID_V8.11.1"},
+		"X-Brand":         {"ONEBRAND"},
+		"X-W3-OS":         {"11"},
+		"X-W3-Device":     {"Samsung SM-G970F"},
+		"X-Language":      {"it"},
+		"X-API-Client-Id": {"55527905-1fae-4f02-b7df-9c9a87749f69"},
+		"Content-Type":    {"application/json; charset=UTF-8"},
+		"Host":            {"apigw.windtre.it"},
+	}
 }
